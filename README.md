@@ -1,31 +1,20 @@
-[![CircleCI](https://circleci.com/gh/bitnami/bitnami-docker-mariadb/tree/master.svg?style=shield)](https://circleci.com/gh/bitnami/bitnami-docker-mariadb/tree/master)
+[![CircleCI](https://circleci.com/gh/bitnami/bitnami-docker-wordpress/tree/master.svg?style=shield)](https://circleci.com/gh/bitnami/bitnami-docker-wordpress/tree/master)
 [![Slack](http://slack.oss.bitnami.com/badge.svg)](http://slack.oss.bitnami.com)
-[![Kubectl](https://img.shields.io/badge/kubectl-Available-green.svg)](https://raw.githubusercontent.com/bitnami/bitnami-docker-mariadb/master/kubernetes.yml)
+[![Kubectl](https://img.shields.io/badge/kubectl-Available-green.svg)](https://raw.githubusercontent.com/bitnami/bitnami-docker-wordpress/master/kubernetes.yml)
 
-# What is MariaDB?
+# What is WordPress?
 
-> MariaDB is a fast, reliable, scalable, and easy to use open-source relational database system. MariaDB Server is intended for mission-critical, heavy-load production systems as well as for embedding into mass-deployed software.
+> WordPress is one of the most versatile open source content management systems on the market. WordPress is built for high performance and is scalable to many servers, has easy integration via REST, JSON, SOAP and other formats, and features a whopping 15,000 plugins to extend and customize the application for just about any type of website.
 
-[https://mariadb.com/](https://mariadb.com/)
+https://www.wordpress.org/
 
 # TL;DR;
 
-```bash
-docker run --name mariadb -e ALLOW_EMPTY_PASSWORD=yes bitnami/mariadb:latest
-```
-
 ## Docker Compose
 
-```yaml
-version: '2'
-
-services:
-  mariadb:
-    image: 'bitnami/mariadb:latest'
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - '3306:3306'
+```bash
+$ curl -LO https://raw.githubusercontent.com/bitnami/bitnami-docker-wordpress/master/docker-compose.yml
+$ docker-compose up
 ```
 
 ## Kubernetes
@@ -35,7 +24,7 @@ services:
 Get the raw URL pointing to the kubernetes.yml manifest and use kubectl to create the resources on your Kubernetes cluster like so:
 
 ```bash
-$ kubectl create -f https://raw.githubusercontent.com/bitnami/bitnami-docker-mariadb/master/kubernetes.yml
+$ kubectl create -f https://raw.githubusercontent.com/bitnami/bitnami-docker-wordpress/master/kubernetes.yml
 ```
 
 # Why use Bitnami Images?
@@ -46,123 +35,58 @@ $ kubectl create -f https://raw.githubusercontent.com/bitnami/bitnami-docker-mar
 * Bitnami images are built on CircleCI and automatically pushed to the Docker Hub.
 * All our images are based on [minideb](https://github.com/bitnami/minideb) a minimalist Debian based container image which gives you a small base container image and the familiarity of a leading linux distribution.
 
-# Get this image
+# Prerequisites
 
-The recommended way to get the Bitnami MariaDB Docker Image is to pull the prebuilt image from the [Docker Hub Registry](https://hub.docker.com/r/bitnami/mariadb).
+To run this application you need [Docker Engine](https://www.docker.com/products/docker-engine) >= `1.10.0`. [Docker Compose](https://www.docker.com/products/docker-compose) is recommended with a version `1.6.0` or later.
 
-```bash
-docker pull bitnami/mariadb:latest
-```
+# How to use this image
 
-To use a specific version, you can pull a versioned tag. You can view the
-[list of available versions](https://hub.docker.com/r/bitnami/mariadb/tags/)
-in the Docker Hub Registry.
-
-```bash
-docker pull bitnami/mariadb:[TAG]
-```
-
-If you wish, you can also build the image yourself.
-
-```bash
-docker build -t bitnami/mariadb:latest https://github.com/bitnami/bitnami-docker-mariadb.git
-```
-
-# Persisting your database
-
-If you remove the container all your data and configurations will be lost, and the next time you run the image the database will be reinitialized. To avoid this loss of data, you should mount a volume that will persist even after the container is removed.
-
-**Note!**
-If you have already started using your database, follow the steps on
-[backing up](#backing-up-your-container) and [restoring](#restoring-a-backup) to pull the data from your running container down to your host.
-
-The image exposes a volume at `/bitnami/mariadb` for the MariaDB data and configurations. For persistence you can mount a directory at this location from your host. If the mounted directory is empty, it will be initialized on the first run.
-
-```bash
-docker run -v /path/to/mariadb-persistence:/bitnami/mariadb bitnami/mariadb:latest
-```
-
-or using Docker Compose:
-
-```yaml
-version: '2'
-
-services:
-  mariadb:
-    image: 'bitnami/mariadb:latest'
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - '3306:3306'
-    volumes:
-      - /path/to/mariadb-persistence:/bitnami/mariadb
-```
-
-# Connecting to other containers
-
-Using [Docker container networking](https://docs.docker.com/engine/userguide/networking/), a MariaDB server running inside a container can easily be accessed by your application containers.
-
-Containers attached to the same network can communicate with each other using the container name as the hostname.
-
-## Using the Command Line
-
-In this example, we will create a MariaDB client instance that will connect to the server instance that is running on the same docker network as the client.
-
-### Step 1: Create a network
-
-```bash
-$ docker network create app-tier --driver bridge
-```
-
-### Step 2: Launch the MariaDB server instance
-
-Use the `--network app-tier` argument to the `docker run` command to attach the MariaDB container to the `app-tier` network.
-
-```bash
-$ docker run -d --name mariadb-server \
-    -e ALLOW_EMPTY_PASSWORD=yes \
-    --network app-tier \
-    bitnami/mariadb:latest
-```
-
-### Step 3: Launch your MariaDB client instance
-
-Finally we create a new container instance to launch the MariaDB client and connect to the server created in the previous step:
-
-```bash
-$ docker run -it --rm \
-    --network app-tier \
-    bitnami/mariadb:latest mysql -h mariadb-server -u root
-```
+WordPress requires access to a MySQL database or MariaDB database to store information. We'll use our very own [MariaDB image](https://www.github.com/bitnami/bitnami-docker-mariadb) for the database requirements.
 
 ## Using Docker Compose
 
-When not specified, Docker Compose automatically sets up a new network and attaches all deployed services to that network. However, we will explicitly define a new `bridge` network named `app-tier`. In this example we assume that you want to connect to the MariaDB server from your own custom application image which is identified in the following snippet by the service name `myapp`.
+The recommended way to run WordPress is using Docker Compose using the following `docker-compose.yml` template:
 
 ```yaml
 version: '2'
 
-networks:
-  app-tier:
-    driver: bridge
-
 services:
   mariadb:
     image: 'bitnami/mariadb:latest'
+    volumes:
+      - 'mariadb_data:/bitnami/mariadb'
     environment:
+      - MARIADB_USER=bn_wordpress
+      - MARIADB_DATABASE=bitnami_wordpress
       - ALLOW_EMPTY_PASSWORD=yes
-    networks:
-      - app-tier
-  myapp:
-    image: 'YOUR_APPLICATION_IMAGE'
-    networks:
-      - app-tier
-```
+  wordpress:
+    image: 'bitnami/wordpress:latest'
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - 'wordpress_data:/bitnami/wordpress'
+      - 'apache_data:/bitnami/apache'
+      - 'php_data:/bitnami/php'
+    depends_on:
+      - mariadb
+    environment:
+      - MARIADB_HOST=mariadb
+      - MARIADB_PORT_NUMBER=3306
+      - WORDPRESS_DATABASE_USER=bn_wordpress
+      - WORDPRESS_DATABASE_NAME=bitnami_wordpress
+      - ALLOW_EMPTY_PASSWORD=yes
 
-> **IMPORTANT**:
->
-> 1. Please update the `YOUR_APPLICATION_IMAGE` placeholder in the above snippet with your application image
-> 2. In your application container, use the hostname `mariadb` to connect to the MariaDB server
+volumes:
+  mariadb_data:
+    driver: local
+  wordpress_data:
+    driver: local
+  apache_data:
+    driver: local
+  php_data:
+    driver: local
+```
 
 Launch the containers using:
 
@@ -170,46 +94,209 @@ Launch the containers using:
 $ docker-compose up -d
 ```
 
+## Using the Docker Command Line
+
+If you want to run the application manually instead of using `docker-compose`, these are the basic steps you need to run:
+
+1. Create a network
+
+  ```bash
+  $ docker network create wordpress-tier
+  ```
+
+2. Create a volume for MariaDB persistence and create a MariaDB container
+
+  ```bash
+  $ docker volume create --name mariadb_data
+  $ docker run -d --name mariadb \
+    -e ALLOW_EMPTY_PASSWORD=yes \
+    -e MARIADB_USER=bn_wordpress \
+    -e MARIADB_DATABASE=bitnami_wordpress \
+    --net wordpress-tier \
+    --volume mariadb_data:/bitnami/mariadb \
+    bitnami/mariadb:latest
+  ```
+
+3. Create volumes for WordPress persistence and launch the container
+
+  ```bash
+  $ docker volume create --name wordpress_data
+  $ docker volume create --name apache_data
+  $ docker volume create --name php_data
+  $ docker run -d --name wordpress -p 80:80 -p 443:443 \
+    -e ALLOW_EMPTY_PASSWORD=yes \
+    -e WORDPRESS_DATABASE_USER=bn_wordpress \
+    -e WORDPRESS_DATABASE_NAME=bitnami_wordpress \
+    --net wordpress-tier \
+    --volume wordpress_data:/bitnami/wordpress \
+    --volume apache_data:/bitnami/apache \
+    --volume php_data:/bitnami/php \
+    bitnami/wordpress:latest
+  ```
+
+Access your application at http://your-ip/
+
+## Persisting your application
+
+For persistence of the WordPress deployment, the above examples define docker volumes namely `mariadb_data`, `wordpress_data`, `apache_data` and `php_data`. The WordPress application state will persist as long as these volumes are not removed.
+
+To avoid inadvertent removal of these volumes you can [mount host directories as data volumes](https://docs.docker.com/engine/userguide/containers/dockervolumes/#mount-a-host-directory-as-a-data-volume). Alternatively you can make use of volume plugins to host the volume data.
+
+### Mount host directories as data volumes with Docker Compose
+
+The following `docker-compose.yml` template demonstrates the use of host directories as data volumes.
+
+```yaml
+version: '2'
+
+services:
+  mariadb:
+    image: 'bitnami/mariadb:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=bn_wordpress
+      - MARIADB_DATABASE=bitnami_wordpress
+    volumes:
+      - /path/to/mariadb-persistence:/bitnami/mariadb
+  wordpress:
+    image: bitnami/wordpress:latest
+    depends_on:
+      - mariadb
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      - WORDPRESS_DATABASE_USER=bn_wordpress
+      - WORDPRESS_DATABASE_NAME=bitnami_wordpress
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - /path/to/wordpress-persistence:/bitnami/wordpress
+      - /path/to/apache-persistence:/bitnami/apache
+      - /path/to/php-persistence:/bitnami/php
+```
+
+### Mount host directories as data volumes using the Docker command line
+
+1. Create a network (if it does not exist)
+  ```bash
+  $ docker network create wordpress-tier
+  ```
+
+2. Create a MariaDB container with host volume
+  ```bash
+  $ docker run -d --name mariadb \
+    -e ALLOW_EMPTY_PASSWORD=yes \
+    -e MARIADB_USER=bn_wordpress \
+    -e MARIADB_DATABASE=bitnami_wordpress \
+    --net wordpress-tier \
+    --volume /path/to/mariadb-persistence:/bitnami/mariadb \
+    bitnami/mariadb:latest
+  ```
+
+3. Create the WordPress the container with host volumes
+  ```bash
+  $ docker run -d --name wordpress -p 80:80 -p 443:443 \
+    -e ALLOW_EMPTY_PASSWORD=yes \
+    -e WORDPRESS_DATABASE_USER=bn_wordpress \
+    -e WORDPRESS_DATABASE_NAME=bitnami_wordpress \
+    --net wordpress-tier \
+    --volume /path/to/wordpress-persistence:/bitnami/wordpress \
+    --volume /path/to/apache-persistence:/bitnami/apache \
+    --volume /path/to/php-persistence:/bitnami/php \
+    bitnami/wordpress:latest
+  ```
+
+# Upgrading WordPress
+
+Bitnami provides up-to-date versions of MariaDB and WordPress, including security patches, soon after they are made upstream. We recommend that you follow these steps to upgrade your container. We will cover here the upgrade of the WordPress container. For the MariaDB upgrade see https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#upgrade-this-image
+
+The `bitnami/wordpress:latest` tag always points to the most recent release. To get the most recent release you can simple repull the `latest` tag from the Docker Hub with `docker pull bitnami/wordpress:latest`. However it is recommended to use [tagged versions](https://hub.docker.com/r/bitnami/wordpress/tags/).
+
+Get the updated image:
+
+```
+$ docker pull bitnami/wordpress:latest
+```
+
+## Using Docker Compose
+
+1. Stop the running WordPress container
+  ```bash
+  $ docker-compose stop wordpress
+  ```
+
+2. Remove the stopped container
+  ```bash
+  $ docker-compose rm wordpress
+  ```
+
+3. Launch the updated WordPress image
+  ```bash
+  $ docker-compose start wordpress
+  ```
+
+## Using Docker command line
+
+1. Stop the running WordPress container
+  ```bash
+  $ docker stop wordpress
+  ```
+
+2. Remove the stopped container
+  ```bash
+  $ docker rm wordpress
+  ```
+
+3. Launch the updated WordPress image
+  ```bash
+  $ docker run -d --name wordpress -p 80:80 -p 443:443 \
+    -e ALLOW_EMPTY_PASSWORD=yes \
+    -e WORDPRESS_DATABASE_USER=bn_wordpress \
+    -e WORDPRESS_DATABASE_NAME=bitnami_wordpress \
+    --net wordpress-tier \
+    --volume wordpress_data:/bitnami/wordpress \
+    --volume apache_data:/bitnami/apache \
+    --volume php_data:/bitnami/php \
+    bitnami/wordpress:latest
+  ```
+
+> **NOTE**:
+>
+> The above command assumes that local docker volumes are in use. Edit the command according to your usage.
+
 # Configuration
 
-## Setting the root password on first run
+## Environment variables
 
-The root user and password can easily be setup with the Bitnami MariaDB Docker image using the following environment variables:
+The WordPress instance can be customized by specifying environment variables on the first run. The following environment values are provided to custom WordPress:
 
- - `MARIADB_ROOT_USER`: The database admin user. Defaults to `root`.
- - `MARIADB_ROOT_PASSWORD`: The database admin user password. No defaults.
+##### User and Site configuration
+- `WORDPRESS_USERNAME`: WordPress application username. Default: **user**
+- `WORDPRESS_PASSWORD`: WordPress application password. Default: **bitnami**
+- `WORDPRESS_EMAIL`: WordPress application email. Default: **user@example.com**
+- `WORDPRESS_FIRST_NAME`: WordPress user first name. Default: **FirstName**
+- `WORDPRESS_LAST_NAME`: WordPress user last name. Default: **LastName**
+- `WORDPRESS_BLOG_NAME`: WordPress blog name. Default: **User's blog**
 
-Passing the `MARIADB_ROOT_PASSWORD` environment variable when running the image for the first time will set the password of the `MARIADB_ROOT_USER` user to the value of `MARIADB_ROOT_PASSWORD`.
+##### Use an existing database
+- `MARIADB_HOST`: Hostname for MariaDB server. Default: **mariadb**
+- `MARIADB_PORT_NUMBER`: Port used by MariaDB server. Default: **3306**
+- `WORDPRESS_DATABASE_NAME`: Database name that WordPress will use to connect with the database. Default: **bitnami_wordpress**
+- `WORDPRESS_DATABASE_USER`: Database user that WordPress will use to connect with the database. Default: **bn_wordpress**
+- `WORDPRESS_DATABASE_PASSWORD`: Database password that WordPress will use to connect with the database. No defaults.
+- `ALLOW_EMPTY_PASSWORD`: It can be used to allow blank passwords. Default: **no**
 
-```bash
-docker run --name mariadb -e MARIADB_ROOT_PASSWORD=password123 bitnami/mariadb:latest
-```
+##### Create a database for WordPress using mysql-client
+- `MARIADB_HOST`: Hostname for MariaDB server. Default: **mariadb**
+- `MARIADB_PORT_NUMBER`: Port used by MariaDB server. Default: **3306**
+- `MARIADB_ROOT_USER`: Database admin user. Default: **root**
+- `MARIADB_ROOT_PASSWORD`: Database password for the `MARIADB_ROOT_USER` user. No defaults.
+- `MYSQL_CLIENT_CREATE_DATABASE_NAME`: New database to be created by the mysql client module. No defaults.
+- `MYSQL_CLIENT_CREATE_DATABASE_USER`: New database user to be created by the mysql client module. No defaults.
+- `MYSQL_CLIENT_CREATE_DATABASE_PASSWORD`: Database password for the `MYSQL_CLIENT_CREATE_DATABASE_USER` user. No defaults.
+- `ALLOW_EMPTY_PASSWORD`: It can be used to allow blank passwords. Default: **no**
 
-or using Docker Compose:
-
-```yaml
-version: '2'
-
-services:
-  mariadb:
-    image: 'bitnami/mariadb:latest'
-    ports:
-      - '3306:3306'
-    environment:
-      - MARIADB_ROOT_PASSWORD=password123
-```
-
-**Warning** The `MARIADB_ROOT_USER` user is always created with remote access. It's suggested that the `MARIADB_ROOT_PASSWORD` env variable is always specified to set a password for the `MARIADB_ROOT_USER` user. In case you want to allow the `MARIADB_ROOT_USER` user to access the database without a password set the environment variable `ALLOW_EMPTY_PASSWORD=yes`. **This is recommended only for development**.
-
-## Allowing empty passwords
-
-By default the MariaDB image expects all the available passwords to be set. In order to allow empty passwords, it is necessary to set the `ALLOW_EMPTY_PASSWORD=yes` env variable. This env variable is only recommended for testing or development purposes. We strongly recommend specifying the `MARIADB_ROOT_PASSWORD` for any other scenario.
-
-```bash
-docker run --name mariadb -e ALLOW_EMPTY_PASSWORD=yes bitnami/mariadb:latest
-```
-
-or using Docker Compose:
+### Specifying Environment variables using Docker Compose
 
 ```yaml
 version: '2'
@@ -217,376 +304,207 @@ version: '2'
 services:
   mariadb:
     image: 'bitnami/mariadb:latest'
-    ports:
-      - '3306:3306'
     environment:
+      - MARIADB_USER=bn_wordpress
+      - MARIADB_DATABASE=bitnami_wordpress
       - ALLOW_EMPTY_PASSWORD=yes
-```
-
-## Creating a database on first run
-
-By passing the `MARIADB_DATABASE` environment variable when running the image for the first time, a database will be created. This is useful if your application requires that a database already exists, saving you from having to manually create the database using the MySQL client.
-
-```bash
-docker run --name mariadb -e MARIADB_DATABASE=my_database bitnami/mariadb:latest
-```
-
-or using Docker Compose:
-
-```yaml
-version: '2'
-
-services:
-  mariadb:
-    image: 'bitnami/mariadb:latest'
-    ports:
-      - '3306:3306'
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - MARIADB_DATABASE=my_database
-```
-
-## Creating a database user on first run
-
-You can create a restricted database user that only has permissions for the database created with the [`MARIADB_DATABASE`](#creating-a-database-on-first-run) environment variable. To do this, provide the `MARIADB_USER` environment variable and to set a password for the database user provide the `MARIADB_PASSWORD` variable.
-
-```bash
-docker run --name mariadb \
-  -e ALLOW_EMPTY_PASSWORD=yes \
-  -e MARIADB_USER=my_user \
-  -e MARIADB_PASSWORD=my_password \
-  -e MARIADB_DATABASE=my_database \
-  bitnami/mariadb:latest
-```
-
-or using Docker Compose:
-
-```yaml
-version: '2'
-
-services:
-  mariadb:
-    image: 'bitnami/mariadb:latest'
-    ports:
-      - '3306:3306'
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - MARIADB_USER=my_user
-      - MARIADB_PASSWORD=my_password
-      - MARIADB_DATABASE=my_database
-```
-
-**Note!** The `root` user will be created with remote access and without a password if `ALLOW_EMPTY_PASSWORD` is enabled. Please provide the `MARIADB_ROOT_PASSWORD` env variable instead if you want to set a password for the `root` user.
-
-## Setting up a replication cluster
-
-A **zero downtime** MariaDB master-slave [replication](https://dev.mysql.com/doc/refman/5.0/en/replication-howto.html) cluster can easily be setup with the Bitnami MariaDB Docker image using the following environment variables:
-
- - `MARIADB_REPLICATION_MODE`: The replication mode. Possible values `master`/`slave`. No defaults.
- - `MARIADB_REPLICATION_USER`: The replication user created on the master on first run. No defaults.
- - `MARIADB_REPLICATION_PASSWORD`: The replication users password. No defaults.
- - `MARIADB_MASTER_HOST`: Hostname/IP of replication master (slave parameter). No defaults.
- - `MARIADB_MASTER_PORT_NUMBER`: Server port of the replication master (slave parameter). Defaults to `3306`.
- - `MARIADB_MASTER_ROOT_USER`: User on replication master with access to `MARIADB_DATABASE` (slave parameter). Defaults to `root`
- - `MARIADB_MASTER_ROOT_PASSWORD`: Password of user on replication master with access to `MARIADB_DATABASE` (slave parameter). No defaults.
-
-In a replication cluster you can have one master and zero or more slaves. When replication is enabled the master node is in read-write mode, while the slaves are in read-only mode. For best performance its advisable to limit the reads to the slaves.
-
-### Step 1: Create the replication master
-
-The first step is to start the MariaDB master.
-
-```bash
-docker run --name mariadb-master \
-  -e MARIADB_ROOT_PASSWORD=master_root_password \
-  -e MARIADB_REPLICATION_MODE=master \
-  -e MARIADB_REPLICATION_USER=my_repl_user \
-  -e MARIADB_REPLICATION_PASSWORD=my_repl_password \
-  -e MARIADB_USER=my_user \
-  -e MARIADB_PASSWORD=my_password \
-  -e MARIADB_DATABASE=my_database \
-  bitnami/mariadb:latest
-```
-
-In the above command the container is configured as the `master` using the `MARIADB_REPLICATION_MODE` parameter. A replication user is specified using the `MARIADB_REPLICATION_USER` and `MARIADB_REPLICATION_PASSWORD` parameters.
-
-### Step 2: Create the replication slave
-
-Next we start a MariaDB slave container.
-
-```bash
-docker run --name mariadb-slave --link mariadb-master:master \
-  -e MARIADB_REPLICATION_MODE=slave \
-  -e MARIADB_REPLICATION_USER=my_repl_user \
-  -e MARIADB_REPLICATION_PASSWORD=my_repl_password \
-  -e MARIADB_MASTER_HOST=master \
-  -e MARIADB_MASTER_ROOT_PASSWORD=master_root_password \
-  bitnami/mariadb:latest
-```
-
-In the above command the container is configured as a `slave` using the `MARIADB_REPLICATION_MODE` parameter. The `MARIADB_MASTER_HOST`, `MARIADB_MASTER_ROOT_USER` and `MARIADB_MASTER_ROOT_PASSWORD` parameters are used by the slave to connect to the master. It also takes a dump of the existing data in the master server. The replication user credentials are specified using the `MARIADB_REPLICATION_USER` and `MARIADB_REPLICATION_PASSWORD` parameters and should be the same as the one specified on the master.
-
-You now have a two node MariaDB master/slave replication cluster up and running. You can scale the cluster by adding/removing slaves without incurring any downtime.
-
-With Docker Compose the master/slave replication can be setup using:
-
-```yaml
-version: '2'
-
-services:
-  mariadb-master:
-    image: 'bitnami/mariadb:latest'
-    ports:
-      - '3306'
     volumes:
-      - /path/to/mariadb-persistence:/bitnami/mariadb
-    environment:
-      - MARIADB_REPLICATION_MODE=master
-      - MARIADB_REPLICATION_USER=repl_user
-      - MARIADB_REPLICATION_PASSWORD=repl_password
-      - MARIADB_ROOT_PASSWORD=master_root_password
-      - MARIADB_USER=my_user
-      - MARIADB_PASSWORD=my_password
-      - MARIADB_DATABASE=my_database
-  mariadb-slave:
-    image: 'bitnami/mariadb:latest'
-    ports:
-      - '3306'
+      - mariadb_data:/bitnami/mariadb
+  wordpress:
+    image: bitnami/wordpress:latest
     depends_on:
-      - mariadb-master
+      - mariadb
+    ports:
+      - '80:80'
+      - '443:443'
     environment:
-      - MARIADB_REPLICATION_MODE=slave
-      - MARIADB_REPLICATION_USER=repl_user
-      - MARIADB_REPLICATION_PASSWORD=repl_password
-      - MARIADB_MASTER_HOST=mariadb-master
-      - MARIADB_MASTER_PORT_NUMBER=3306
-      - MARIADB_MASTER_ROOT_PASSWORD=master_root_password
+      - MARIADB_HOST=mariadb
+      - MARIADB_PORT_NUMBER=3306
+      - WORDPRESS_DATABASE_USER=bn_wordpress
+      - WORDPRESS_DATABASE_NAME=bitnami_wordpress
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - wordpress_data:/bitnami/wordpress
+      - apache_data:/bitnami/apache
+      - php_data:/bitnami/php
+
+volumes:
+  mariadb_data:
+    driver: local
+  wordpress_data:
+    driver: local
+  apache_data:
+    driver: local
+  php_data:
+    driver: local
 ```
 
-Scale the number of slaves using:
+### Specifying Environment variables on the Docker command line
 
 ```bash
-docker-compose scale mariadb-master=1 mariadb-slave=3
+$ docker run -d --name wordpress -p 80:80 -p 443:443 \
+  --net wordpress-tier \
+  -e ALLOW_EMPTY_PASSWORD=yes \
+  -e WORDPRESS_DATABASE_USER=bn_wordpress \
+  -e WORDPRESS_DATABASE_NAME=bitnami_wordpress \
+  -e WORDPRESS_PASSWORD=my_password \
+  --volume wordpress_data:/bitnami/wordpress \
+  --volume apache_data:/bitnami/apache \
+  --volume php_data:/bitnami/php \
+  bitnami/wordpress:latest
 ```
 
-The above command scales up the number of slaves to `3`. You can scale down in the same manner.
+### SMTP Configuration
 
-> **Note**: You should not scale up/down the number of master nodes. Always have only one master node running.
+To configure WordPress to send email using SMTP you can set the following environment variables:
+- `SMTP_HOST`: Host for outgoing SMTP email. No defaults.
+- `SMTP_PORT`: Port for outgoing SMTP email. No defaults.
+- `SMTP_USER`: User of SMTP used for authentication (likely email). No defaults.
+- `SMTP_PASSWORD`: Password for SMTP. No defaults.
+- `SMTP_PROTOCOL`: Secure connection protocol to use for SMTP [tls, ssl, none]. No defaults.
 
-## Configuration file
+This would be an example of SMTP configuration using a GMail account:
 
-The image looks for configuration in the `conf/` directory of `/bitnami/mariadb`. As mentioned in [Persisting your database](#persisting-your-data) you can mount a volume at this location and copy your own custom `my_custom.cnf` file in the `conf/` directory. That file will be included in the main configuration file and will overwrite any configuration you want to modify.
-
-For example, in order to override the max_allowed_packet directive:
-
-# Step 1: Write your my_custom.cnf file with the following content.
-```
-[mysqld]
-max_allowed_packet=32M
-```
-
-# Step 2: Run the mariaDB image with the designed volume attached.
-```
-docker run --name mariadb -v /path/to/my_custom_cnf_directory:/bitnami/mariadb bitnami/mariadb:latest
-```
-After that, your changes will be taken into account in the server's behaviour.
-
-### Step 1: Run the MariaDB image
-
-Run the MariaDB image, mounting a directory from your host.
-
-```bash
-docker run --name mariadb -v /path/to/mariadb-persistence:/bitnami/mariadb bitnami/mariadb:latest
-```
-
-or using Docker Compose:
+ * docker-compose (application part):
 
 ```yaml
-version: '2'
-
-services:
-  mariadb:
-    image: 'bitnami/mariadb:latest'
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+  wordpress:
+    image: bitnami/wordpress:latest
     ports:
-      - '3306:3306'
+      - 80:80
+      - 443:443
+    environment:
+      - MARIADB_HOST=mariadb
+      - MARIADB_PORT_NUMBER=3306
+      - WORDPRESS_DATABASE_USER=bn_wordpress
+      - WORDPRESS_DATABASE_NAME=bitnami_wordpress
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your_email@gmail.com
+      - SMTP_PASSWORD=your_password
+      - SMTP_PROTOCOL=tls
     volumes:
-      - /path/to/mariadb-persistence:/bitnami/mariadb
+      - wordpress_data:/bitnami/wordpress
 ```
 
-### Step 2: Edit the configuration
+* For manual execution:
 
-Edit the configuration on your host using your favorite editor.
-
-```bash
-vi /path/to/mariadb-persistence/conf/my.cnf
+```
+$ docker run -d --name wordpress -p 80:80 -p 443:443 \
+  --net wordpress-tier \
+  --env SMTP_HOST=smtp.gmail.com --env SMTP_PORT=587 \
+  --env SMTP_USER=your_email@gmail.com --env SMTP_PASSWORD=your_password \
+  --env ALLOW_EMPTY_PASSWORD=yes --env WORDPRESS_DATABASE_USER=bn_wordpress \
+  --env WORDPRESS_DATABASE_NAME=bitnami_wordpress \
+  --volume wordpress_data:/bitnami/wordpress \
+  bitnami/wordpress:latest
 ```
 
-### Step 3: Restart MariaDB
+### Connect WordPress docker container to an existing database
 
-After changing the configuration, restart your MariaDB container for changes to take effect.
+The Bitnami WordPress container supports connecting the WordPress application to an external database. In order to configure it, you should set the following environment variables:
+- `MARIADB_HOST`: Hostname for MariaDB server. Default: **mariadb**
+- `MARIADB_PORT_NUMBER`: Port used by MariaDB server. Default: **3306**
+- `WORDPRESS_DATABASE_NAME`: Database name that WordPress will use to connect with the database. Default: **bitnami_wordpress**
+- `WORDPRESS_DATABASE_USER`: Database user that WordPress will use to connect with the database. Default: **bn_wordpress**
+- `WORDPRESS_DATABASE_PASSWORD`: Database password that WordPress will use to connect with the database. No defaults.
 
-```bash
-docker restart mariadb
-```
+This would be an example of using an external database for WordPress.
 
-or using Docker Compose:
-
-```bash
-docker-compose restart mariadb
-```
-
-**Further Reading:**
-
-  - [Server Option and Variable Reference](https://dev.mysql.com/doc/refman/5.1/en/mysqld-option-tables.html)
-
-# Logging
-
-The Bitnami MariaDB Docker image sends the container logs to the `stdout`. To view the logs:
-
-```bash
-docker logs mariadb
-```
-
-or using Docker Compose:
-
-```bash
-docker-compose logs mariadb
-```
-
-You can configure the containers [logging driver](https://docs.docker.com/engine/admin/logging/overview/) using the `--log-driver` option if you wish to consume the container logs differently. In the default configuration docker uses the `json-file` driver.
-
-# Maintenance
-
-## Backing up your container
-
-To backup your data, configuration and logs, follow these simple steps:
-
-### Step 1: Stop the currently running container
-
-```bash
-docker stop mariadb
-```
-
-or using Docker Compose:
-
-```bash
-docker-compose stop mariadb
-```
-
-### Step 2: Run the backup command
-
-We need to mount two volumes in a container we will use to create the backup: a directory on your host to store the backup in, and the volumes from the container we just stopped so we can access the data.
-
-```bash
-docker run --rm -v /path/to/mariadb-backups:/backups --volumes-from mariadb busybox \
-  cp -a /bitnami/mariadb:latest /backups/latest
-```
-
-or using Docker Compose:
-
-```bash
-docker run --rm -v /path/to/mariadb-backups:/backups --volumes-from `docker-compose ps -q mariadb` busybox \
-  cp -a /bitnami/mariadb:latest /backups/latest
-```
-
-## Restoring a backup
-
-Restoring a backup is as simple as mounting the backup as volumes in the container.
-
-```bash
-docker run -v /path/to/mariadb-backups/latest:/bitnami/mariadb bitnami/mariadb:latest
-```
-
-or using Docker Compose:
+ * docker-compose:
 
 ```yaml
-version: '2'
-
-services:
-  mariadb:
-    image: 'bitnami/mariadb:latest'
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+  wordpress:
+    image: bitnami/wordpress:latest
     ports:
-      - '3306:3306'
+      - 80:80
+      - 443:443
+    environment:
+      - MARIADB_HOST=mariadb_host
+      - MARIADB_PORT_NUMBER=3306
+      - WORDPRESS_DATABASE_NAME=wordpress_db
+      - WORDPRESS_DATABASE_USER=wordpress_user
+      - WORDPRESS_DATABASE_PASSWORD=wordpress_password
     volumes:
-      - /path/to/mariadb-backups/latest:/bitnami/mariadb
+      - wordpress_data:/bitnami/wordpress
+      - apache_data:/bitnami/apache
+      - php_data:/bitnami/php
 ```
 
-## Upgrade this image
+* For manual execution:
 
-Bitnami provides up-to-date versions of MariaDB, including security patches, soon after they are made upstream. We recommend that you follow these steps to upgrade your container.
-
-### Step 1: Get the updated image
-
-```bash
-docker pull bitnami/mariadb:latest
+```
+$ docker run -d --name wordpress -p 80:80 -p 443:443 \
+  --net wordpress-tier \
+  --env MARIADB_HOST=mariadb_host \
+  --env MARIADB_PORT_NUMBER=3306 \
+  --env WORDPRESS_DATABASE_NAME=wordpress_db \
+  --env WORDPRESS_DATABASE_USER=wordpress_user \
+  --env WORDPRESS_DATABASE_PASSWORD=wordpress_password \
+  --volume wordpress_data:/bitnami/wordpress \
+  --volume apache_data:/bitnami/apache \
+  --volume php_data:/bitnami/php \
+  bitnami/wordpress:latest
 ```
 
-or if you're using Docker Compose, update the value of the image property to
-`bitnami/mariadb:latest`.
+# Backing up your application
 
-### Step 2: Stop and backup the currently running container
+To backup your application data follow these steps:
 
-Before continuing, you should backup your container's data, configuration and logs.
+## Backing up using Docker Compose
 
-Follow the steps on [creating a backup](#backing-up-your-container).
+1. Stop the WordPress container:
+  ```bash
+  $ docker-compose stop wordpress
+  ```
 
-### Step 3: Remove the currently running container
+2. Copy the WordPress, PHP and Apache data
+  ```bash
+  $ docker cp $(docker-compose ps -q wordpress):/bitnami/wordpress/ /path/to/backups/wordpress/latest/
+  $ docker cp $(docker-compose ps -q wordpress):/bitnami/apache/ /path/to/backups/apache/latest/
+  $ docker cp $(docker-compose ps -q wordpress):/bitnami/php/ /path/to/backups/php/latest/
+  ```
 
-```bash
-docker rm -v mariadb
-```
+3. Start the WordPress container
+  ```bash
+  $ docker-compose start wordpress
+  ```
 
-or using Docker Compose:
+## Backing up using the Docker command line
 
+1. Stop the WordPress container:
+  ```bash
+  $ docker stop wordpress
+  ```
 
-```bash
-docker-compose rm -v mariadb
-```
+2. Copy the WordPress, PHP and Apache data
+  ```bash
+  $ docker cp wordpress:/bitnami/wordpress/ /path/to/backups/wordpress/latest/
+  $ docker cp wordpress:/bitnami/apache/ /path/to/backups/apache/latest/
+  $ docker cp wordpress:/bitnami/php/ /path/to/backups/php/latest/
+  ```
 
-### Step 4: Run the new image
+3. Start the WordPress container
+  ```bash
+  $ docker start wordpress
+  ```
 
-Re-create your container from the new image, [restoring your backup](#restoring-a-backup) if necessary.
+# Restoring a backup
 
-```bash
-docker run --name mariadb bitnami/mariadb:latest
-```
-
-or using Docker Compose:
-
-```bash
-docker-compose start mariadb
-```
-
-# Notable Changes
-## 10.1.21-r2
-
-- `MARIADB_MASTER_USER` has been renamed to `MARIADB_MASTER_ROOT_USER`
-- `MARIADB_MASTER_PASSWORD` has been renamed to `MARIADB_MASTER_ROOT_PASSWORD`
-- `MARIADB_ROOT_USER` has been added to the available env variables. It can be used to specify the admin user.
-- `ALLOW_EMPTY_PASSWORD` has been added to the available env variables. It can be used to allow blank passwords for MariaDB.
-- By default the MariaDB image requires a root password to start. You can specify it using the `MARIADB_ROOT_PASSWORD` env variable or disable this requirement by setting the `ALLOW_EMPTY_PASSWORD`  env variable to `yes` (testing or development scenarios).
-
-## 10.1.13-r0
-
-- All volumes have been merged at `/bitnami/mariadb`. Now you only need to mount a single volume at `/bitnami/mariadb` for persistence.
-- The logs are always sent to the `stdout` and are no longer collected in the volume.
+To restore your application using backed up data simply mount the folder with WordPress and Apache data in the container. See [persisting your application](#persisting-your-application) section for more info.
 
 # Contributing
 
-We'd love for you to contribute to this container. You can request new features by creating an [issue](https://github.com/bitnami/bitnami-docker-mariadb/issues), or submit a [pull request](https://github.com/bitnami/bitnami-docker-mariadb/pulls) with your contribution.
+We'd love for you to contribute to this container. You can request new features by creating an [issue](https://github.com/bitnami/bitnami-docker-wordpress/issues), or submit a [pull request](https://github.com/bitnami/bitnami-docker-wordpress/pulls) with your contribution.
 
 # Issues
 
-If you encountered a problem running this container, you can file an [issue](https://github.com/bitnami/bitnami-docker-mariadb/issues). For us to provide better support, be sure to include the following information in your issue:
+If you encountered a problem running this container, you can file an [issue](https://github.com/bitnami/bitnami-docker-wordpress/issues). For us to provide better support, be sure to include the following information in your issue:
 
 - Host OS and version
-- Docker version (`docker version`)
-- Output of `docker info`
-- Version of this container (`echo $BITNAMI_IMAGE_VERSION` inside the container)
+- Docker version (`$ docker version`)
+- Output of `$ docker info`
+- Version of this container (`$ echo $BITNAMI_IMAGE_VERSION` inside the container)
 - The command you used to run the container, and any relevant output you saw (masking any sensitive information)
 
 # Community
@@ -597,13 +515,13 @@ Discussions are archived at [bitnami-oss.slackarchive.io](https://bitnami-oss.sl
 
 # License
 
-Copyright (c) 2015-2016 Bitnami
+Copyright (c) 2017 Bitnami
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+  <http://www.apache.org/licenses/LICENSE-2.0>
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
