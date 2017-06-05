@@ -14,37 +14,16 @@ empty_password_enabled_warn() {
   warn "You set the environment variable ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}. For safety reasons, do not use this flag in a production environment."
 }
 
-##
-## @brief     Helper function to check deprecated environment variables and warn about them
-## param $1   Deprecated environment variable to check
-## param $2   Suggested environment variable to use
-##
-check_for_deprecated_env() {
-  if [[ -n "${!1}" ]]; then
-    warn "The environment variable $1 is deprecated and will be removed in a future. Please use $2 instead"
-  fi
-}
-
-# Check env vars to deprecate
-check_for_deprecated_env "MARIADB_MASTER_USER" "MARIADB_MASTER_ROOT_USER"
-export MARIADB_MASTER_ROOT_USER=${MARIADB_MASTER_USER:-${MARIADB_MASTER_ROOT_USER}}
-check_for_deprecated_env "MARIADB_MASTER_PASSWORD" "MARIADB_MASTER_ROOT_PASSWORD"
-export MARIADB_MASTER_ROOT_PASSWORD=${MARIADB_MASTER_PASSWORD:-${MARIADB_MASTER_ROOT_PASSWORD}}
-
 # Validate passwords
 if [[ "$ALLOW_EMPTY_PASSWORD" =~ ^(yes|Yes|YES)$ ]]; then
   empty_password_enabled_warn
-elif [[ "$MARIADB_REPLICATION_MODE" != "slave" ]]; then
-  # Root user
-  if [[ -z "$MARIADB_ROOT_PASSWORD" ]]; then
-    empty_password_error MARIADB_ROOT_PASSWORD
+else
+  # Database creation by MySQL client
+  if [[ -n "$MYSQL_CLIENT_CREATE_DATABASE_USER" && -z "$MYSQL_CLIENT_CREATE_DATABASE_PASSWORD" ]]; then
+    empty_password_error MSQL_CLIENT_CREATE_DATABASE_PASSWORD
   fi
-  # Replication user
-  if [[ -n "$MARIADB_REPLICATION_USER" && -z "$MARIADB_REPLICATION_PASSWORD" ]]; then
-    empty_password_error MARIADB_REPLICATION_PASSWORD
-  fi
-  # Additional user creation
-  if [[ -n "$MARIADB_USER" && -z "$MARIADB_PASSWORD" ]]; then
-    empty_password_error MARIADB_PASSWORD
+  # WordPress database
+  if [[ -z "$WORDPRESS_DATABASE_PASSWORD" ]]; then
+    empty_password_error WORDPRESS_DATABASE_PASSWORD
   fi
 fi
